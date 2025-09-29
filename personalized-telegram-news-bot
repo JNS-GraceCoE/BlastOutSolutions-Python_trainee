@@ -1,0 +1,143 @@
+!pip install python-telegram-bot==20.3
+
+import telegram
+print(telegram.__version__)
+
+import logging
+import requests
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    CallbackQueryHandler,
+    ConversationHandler,
+    ContextTypes
+)
+
+BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+NEWS_API_KEY = "YOUR_NEWS_API_KEY"
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+SELECT_INTEREST, SELECT_ARTICLE_COUNT, RECEIVE_NEWS = range(3)
+user_interests = {}
+user_article_count = {}
+
+def get_interests_keyboard(chat_id=None):
+    interests = ["technology", "science", "business", "sports", "entertainment"]
+    keyboard = []
+    for interest in interests:
+        label = f"{interest.capitalize()}"
+        if chat_id and chat_id in user_interests and interest in user_interests[chat_id]:
+            label += " ✅"
+        keyboard.append([InlineKeyboardButton(label, callback_data=interest)])
+    keyboard.append([InlineKeyboardButton("Done ✅", callback_data="done")])
+    return InlineKeyboardMarkup(keyboard)
+
+def get_news_articles(category, limit=5):
+    url = f"https://newsapi.org/v2/top-headlines?apiKey={NEWS_API_KEY}&country=us&category={category}"
+    try:
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        if data.get('status') == 'ok':
+            return data['articles'][:limit]
+    except Exception as e:
+        logger.error(f"Error fetching news: {e}")
+    return []
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    chat_id = update.message.chat_id
+    user_interests[chat_id] = []
+    await update.message.reply_text(
+        "Hi! I'm your personalized news bot.\nPlease select your interests:",
+        reply_markup=get_interests_keyboard(chat_id)
+    )
+    return SELECT_INTEREST
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "📌 *Commands*\n"
+        "/start - Select interests and get news\n"
+        "/cancel - Cancel current selection\n"
+        "/help - Show this help message",
+        parse_mode="Markdown"
+    )
+
+async def select_interest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    chat_id = query.from_user.id
+    data = query.data
+
+    if data == "done":
+        if user_interests.get(chat_id):
+            keyboard = [
+                [InlineKeyboardButton("3", callback_data="3"),
+                 InlineKeyboardButton("5", callback_data="5"),
+                 InlineKeyboardButton("10", callback_data="10")]
+            ]
+            await query.edit_message_text(
+                "How many articles would you like per interest?",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+            return SELECT_ARTICLE_COUNT
+        else:
+            await query.answer("Please select at least one interest.")
+            return SELECT_INTEREST
+
+    if data in user_interests[chat_id]:
+        user_interests[chat_id].remove(data)
+    else:
+        user_interests[chat_id].append(data)
+
+    await query.edit_message_reply_markup(reply_markup=get_interests_keyboard(chat_id))
+    return SELECT_INTEREST
+
+async def select_article_count(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    chat_id = query.from_user.id
+    count = int(query.data)
+    user_article_count[chat_id] = count
+
+    articles = []
+    for interest in user_interests[chat_id]:
+        articles.extend(get_news_articles(interest, limit=count))
+
+    if articles:
+        for article in articles:
+            msg = f"📰 *{article['title']}*\n{article.get('description','No description')}\n" \
+                  f"[Read more]({article['url']})\n_Source: {article.get('source', {}).get('name', 'Unknown')}_"
+            await query.message.reply_text(msg, parse_mode="Markdown")
+    else:
+        await query.message.reply_text("No news available for your interests.")
+
+    user_interests[chat_id] = []
+    user_article_count[chat_id] = []
+
+    return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text("Cancelled.")
+    return ConversationHandler.END
+
+app = ApplicationBuilder().token(BOT_TOKEN).build()
+
+conv_handler = ConversationHandler(
+    entry_points=[CommandHandler('start', start)],
+    states={
+        SELECT_INTEREST: [CallbackQueryHandler(select_interest)],
+        SELECT_ARTICLE_COUNT: [CallbackQueryHandler(select_article_count)]
+    },
+    fallbacks=[CommandHandler('cancel', cancel)]
+)
+app.add_handler(conv_handler)
+app.add_handler(CommandHandler('help', help_command))
+
+import nest_asyncio
+nest_asyncio.apply()
+app.run_polling()
