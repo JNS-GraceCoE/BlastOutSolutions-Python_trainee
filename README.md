@@ -21,14 +21,14 @@ Setup:
 3. Give your bot a name and username.
 4. Copy the token (it looks like `123456789:ABCdefGhIjkLMNOPqrsTUV`).
 
-#2. NewsAPI Key
+# 2. NewsAPI Key
 1. Go to [NewsAPI](https://newsapi.org/).
 2. Sign up and generate an API key.
 3. Copy the API key.
 
 # 3. Configure the bot
 - Open the `bot.py` (or your script file).
-
+- Replace placeholders
 ---
 
 Demo Video:
