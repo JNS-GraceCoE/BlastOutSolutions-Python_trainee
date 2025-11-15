@@ -35,8 +35,4 @@ Demo Video:
 
 Watch a working demo:
 
-[Telegram NewsBot Demo](https://photos.google.com/share/AF1QipNkODDBCxdpp_V8o5WHPeAtOZXwBWiwc7oid6OCLtBuRaa8GuvRNLldfQnNJN3dSw?key=ak04ZjRpSFlaVHNmU2I0Z3Y3MnBTSnJqTHFfR213)
-
-Project Demo:
-
-[![Telegram NewsBot Demo Video](assets/demo_thumbnail.png)](YOUR_PUBLIC_VIDEO_LINK)
+[![Telegram NewsBot Demo Video](assets/demo_thumbnail.png)]([YOUR_PUBLIC_VIDEO_LINK](https://drive.google.com/file/d/1x1TiD8_DfD2tRMOuWb8XaZa6cWmN0dJ-/view?usp=sharing))
