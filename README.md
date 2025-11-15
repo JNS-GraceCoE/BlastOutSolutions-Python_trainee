@@ -36,3 +36,5 @@ Demo Video:
 Watch a working demo:
 
 [![Telegram NewsBot Demo Video](assets/demo_thumbnail.png)]([(https://drive.google.com/file/d/1x1TiD8_DfD2tRMOuWb8XaZa6cWmN0dJ-/view?usp=sharing)])
+## 🎥 Project Demo
+[![Demo Video](assets/demo_thumbnail.png)](https://drive.google.com/file/d/1x1TiD8_DfD2tRMOuWb8XaZa6cWmN0dJ-/view?usp=sharing)
