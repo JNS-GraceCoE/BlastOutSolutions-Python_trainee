@@ -39,5 +39,4 @@ Watch a working demo:
 
 Project Demo:
 
-[![Telegram NewsBot Demo Video](assets/demo-thumbnail.png)](YOUR_PUBLIC_VIDEO_LINK)
-
+[![Telegram NewsBot Demo Video](assets/demo_thumbnail.png)](YOUR_PUBLIC_VIDEO_LINK)
